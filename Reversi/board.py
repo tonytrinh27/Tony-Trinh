@@ -1,192 +1,215 @@
-import reversi as bo
-from random import randint
+# from random import randint
 
 
+board = [[' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+         ['1', '.', '.', '.', '.', '.', '.', '.', '.'],
+         ['2', '.', '.', '.', '.', '.', '.', '.', '.'],
+         ['3', '.', '.', '.', '.', '.', '.', '.', '.'],
+         ['4', '.', '.', '.', 'W', 'B', '.', '.', '.'],
+         ['5', '.', '.', '.', 'B', 'W', '.', '.', '.'],
+         ['6', '.', '.', '.', '.', '.', '.', '.', '.'],
+         ['7', '.', '.', '.', '.', '.', '.', '.', '.'],
+         ['8', '.', '.', '.', '.', '.', '.', '.', '.']]
+
+
+dir = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7, "h": 8}
+direct= [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]
+
+
+# create board
 def creatboard(board):
-    for i in bo.board:
+    for i in board:
         print(" ".join(i))
 
 
+# change player inputs from string to (x , y)
 def pointInput(inputs):
-    r = 0
-    c = 0
-    if inputs[0] in bo.dir.keys():
-        r = int(bo.dir[inputs[0]])
+    if inputs[0] in dir.keys():
+        r = int(dir[inputs[0]])
         c = int(inputs[1])
-    return r, c
+    return c, r
 
 
+# check limited in board
 def onBoard(x, y):
-    return x >= 1 and x < 9 and y >= 1 and y < 9
+    return 1 <= x <= 8 and 1 <= y <= 8
 
 
+# search for the location of the player in the board
 def getplayer(player):
     getlist = []
     for i in range(1,9):
         for j in range(1,9):
-            if bo.board[i][j] == player:
-                getlist.append([i, j])
+            if board[i][j] == player:
+                getlist.append([j, i])
     return getlist
 
 
+# check location player can go
 def valid_choose(player):
     possible = []
-
-    # Get all position of player now in board
     a = getplayer(player)
-
-    # Make a opponnent
     if player == "B":
         opponnent = "W"
     else:
         opponnent = "B"
-
-
-    # Check each location player
     for i in a:
         c = i[0]
         h = i[1]
-        for u in bo.direct:
+        for u in direct:
             x, y = c, h
-            y += u[0]
-            x += u[1]
+            y += u[1]
+            x += u[0]
             if onBoard(x, y):
-                if bo.board[y][x] == opponnent:
-                    while 1 <= y + u[0] <= 8 and 1 <= x + u[1] <= 8:
-                        if bo.board[y + u[0]][x + u[1]] == opponnent:
-                            y += u[0]
-                            x += u[1]
-                        elif bo.board[y + u[0]][x + u[1]] == player:
+                if board[y][x] == opponnent:
+                    while 1 <= y + u[1] <= 8 and 1 <= x + u[0] <= 8:
+                        if board[y + u[1]][x + u[0]] == opponnent:
+                            y += u[1]
+                            x += u[0]
+                        elif board[y + u[1]][x + u[0]] == player:
                             break
-                        elif bo.board[y + u[0]][x + u[1]] == '.':
-                            possible.append([y + u[0], x + u[1]])
+                        elif board[y + u[1]][x + u[0]] == '.':
+                            possible.append([x + u[0], y + u[1]])
                             break
     return possible
-    # list_Dot = []
-    # if player == "B":
-    #     elplayer = "W"
-    # else:
-    #     elplayer = "B"
-    # for i in getplayer(player):
-    #     h = i[0]
-    #     c = i[1]
-    #     for rec in bo.direct:
-    #         x, y = h, c
-    #         y += rec[1]
-    #         x += rec[0]
-    #         if bo.board[x][y] == elplayer:
-    #             while True:
-    #                 y += rec[1]
-    #                 x += rec[0]
-    #                 print(bo.board[x][y])
-    #                 print(player)
-    #                 if not onBoard(x, y):
-    #                     break
-    #                 elif bo.board[x][y] == '.':
-    #                     print("ok")
-    #                 elif bo.board[x][y] == elplayer:
-    #                     print('f**k')
-    #                 else:
-    #                     print('poot')
-                        # y += rec[1]
-                        # x += rec[0]
-                        # print(elplayer)
-                        # if a == elplayer:
-                            # print("ok")
-                            # break
-            #                 print(elplayer)
-            #                 print(bo.board[x+rec[0]][y+rec[1]])
-                            # x += rec[0]
-                            # y += rec[1]
-                        # elif a == player:
-                            # print("ok")
-            #                 print(bo.board[x+rec[0]][y+rec[1]])
-                            # break
-                        # break
-                        # elif a == ".":
-                            # print(bo.board[x + rec[0]][y + rec[1]])
-                            # list_Dot.append([x + rec[0], y + rec[1]])
-                            # print(list_Dot)
-                            # break
-    return list_Dot
 
 
+# Output valid_choose list
 def outValid(player):
     valid = []
-    # print(valid_choose(player))
     for i in valid_choose(player):
-        for key, val in bo.dir.items():
-            if i[0] == val:
-                valid.append(key+str(i[1]))
-    print("Valid choices: " + ' '.join(set(valid)))
+        valid.append(get_location(i[0], i[1]))
+    print("Valid choices: " + ' '.join(sorted(set(valid))))
 
 
+# used to check the player in next positions
+def check_line(x,y,x_move,y_move, elplayer, player):
+    while 1 <= x + x_move <= 8 and 1 <= y + y_move <= 8:
+        if board[y + y_move][x + x_move] == elplayer:
+            x += x_move
+            y += y_move
+        elif board[y + y_move][x + x_move] == player:
+            return True
+        else:
+            return False
+
+
+# Used to flip elplayer
 def flip(player, playerInput):
     if player == "B":
         elplayer = "W"
     else:
         elplayer = "B"
     r, c = pointInput(playerInput)
-    bo.board[c][r] = player
-    for rec in bo.direct:
-        x, y = r, c
+    board[r][c] = player
+    for rec in direct:
+        x, y = c, r
         x += rec[0]
         y += rec[1]
         if onBoard(x, y):
-            if bo.board[y][x] == elplayer and onBoard(x+rec[0], y+rec[1]):
-                if bo.board[y+rec[1]][x+rec[0]] == player:
-                    bo.board[y][x] = player
-                elif bo.board[y+rec[1]][x+rec[0]] == elplayer:
-                    bo.board[y][x] = player
-                    while 1 <= x + rec[0] <= 8 and 1 <= y + rec[1] <= 8:
-                        if bo.board[y+rec[1]][x+rec[0]] == elplayer:
-                            bo.board[y+rec[1]][x+rec[0]] = player
-                        else:
-                            break
-
-#
-while 1:
-    creatboard(bo.board)
-    outValid("W")
-    playerW = input("Player W: ")
-    flip("W", playerW)
+            if board[y][x] == elplayer and onBoard(x + rec[0], y + rec[1]):
+                if board[y + rec[1]][x + rec[0]] == player:
+                    board[y][x] = player
+                elif board[y + rec[1]][x + rec[0]] == elplayer:
+                    if check_line(x, y , rec[0], rec[1], elplayer, player):
+                        board[y][x] = player
+                        while 1 <= x + rec[0] <= 8 and 1 <= y + rec[1] <= 8:
+                            if board[y + rec[1]][x + rec[0]] == elplayer:
+                                board[y + rec[1]][x + rec[0]] = player
+                                x += rec[0]
+                                y += rec[1]
+                            else:
+                                break
 
 
-    creatboard(bo.board)
+# used to check location input player
+def get_location(x, y):
+    return board[0][x] + board[y][0]
+
+
+# Used to check for dots
+def check_dot():
+    for i in range(1,9):
+        for j in range(1,9):
+            if board[i][j] == ".":
+                return True
+    return False
+
+
+# Used to calculate points
+def score():
+    scoreW = 0
+    scoreB = 0
+    for i in range(1,9):
+        for j in range(1,9):
+            if board[i][j] == "W":
+                scoreW += 1
+            if board[i][j] == "B":
+                scoreB += 1
+    if scoreB > scoreW:
+        print("End of the game. W: {}, B: {}".format(scoreW, scoreB))
+        print("B wins.")
+    elif scoreB < scoreW:
+        print("End of the game. W: {}, B: {}".format(scoreW, scoreB))
+        print("W wins.")
+    else:
+        print("End of the game. W: {}, B: {}".format(scoreW, scoreB))
+        print("Draw.")
+
+
+end = True
+game = True
+
+
+while check_dot():
+    # player B Input
+    creatboard(board)
     outValid("B")
+    arr1 = []
+    for j in valid_choose('B'):
+        arr1.append(get_location(j[0], j[1]))
+    if arr1 == []:
+        print("Player B cannot play.")
+        score()
+        game = False
+        break
+    arr1.sort()
     playerB = input("Player B: ")
+    # rad1 = randint(0, len(arr1) - 1)
+    # playerB = arr1[rad1]
+    # print(playerB)
+    while playerB not in arr1:
+        print(playerB + ': Invalid choice')
+        outValid("B")
+        playerB = input("Player B: ")
     flip("B", playerB)
+        # playerB = arr1[rad1]
 
-# while 1:
-#     creatboard(bo.board)
-#     # valid_choice_W = outValid("W").split(" ")
-#     outValid("W")
-#     # playerW = input("Player W: ")
-#     print("Player W: ",end='')
-#     rad = randint(0, len(valid_choose('W')) -1)
-#     playerW = valid_choose('W')[rad]
-#     # print(playerW)
-#
-#     # valid_choose("W")
-#     # getplayer("W")
-#     outValid('W')
-#     # pointInput(playerW)
-#     flip("W", playerW)
-#     chr, Elchr = playerChr("W")
-#     pointChoose(playerW, chr)
-#
-#     creatboard(bo.board)
-#     # valid_choice_B = outValid("B").split(" ")
-#     outValid("B")
-#     # playerB = input("Player B: ")
-#     print("Player B: ",end='')
-#     rad = randint(0, len(valid_choose('B')) -1)
-#     playerB = valid_choose('B')[rad]
-#
-#     # valid_choose("B")
-#     # getplayer("B")
-#     # pointInput(playerB)
-#     outValid('B')
-#     flip("W", playerB)
-#     chr, Elchr = playerChr("W")
-#     pointChoose(playerB, chr)
+
+    # player W Input
+    creatboard(board)
+    outValid("W")
+    arr = []
+    for i in valid_choose('W'):
+        arr.append(get_location(i[0], i[1]))
+    if arr == []:
+        print("Player W cannot play.")
+        score()
+        game = False
+        break
+    arr.sort()
+    # rad = randint(0, len(arr) - 1)
+    # playerW = arr[rad]
+    # print(playerW)
+    # print(sorted(arr))
+    playerW = input("Player W: ")
+    while playerW not in arr:
+        print(playerW + ': Invalid choice')
+        outValid("W")
+        playerW = input("Player W: ")
+        # playerW = arr[rad]
+    flip("W", playerW)
+# when game End
+if game:
+    creatboard(board)
+    score()
